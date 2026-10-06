@@ -5,3 +5,4 @@ venv/
 *.log
 *.pid
 .claude/
+index.v1-backup.html

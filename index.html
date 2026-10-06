@@ -393,7 +393,7 @@ const A={ctx:null,muted:false,bar:0,ch:chordOf(0),start:0,
 };
 
 // ============================================================ inimigos
-const UPD={},DRAW={};
+const UPD={},DRAW={},ESC=1.4,BSC=1.3;   // inimigos maiores e legíveis, como personagens de desenho
 function mkEnemy(type,o){
   const e=Object.assign({type,x:W+80,y:H/2,r:26,hp:1,t:0,rot:0,sq:0,sqv:0,kx:0,flash:0,delay:0,bob:0,bo:0,seed:Math.random()*100,score:100},o);
   e.maxhp=e.hp;enemies.push(e);return e;
@@ -403,7 +403,7 @@ function fireAt(x,y,a,sp,pink,kind){eb.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a
 // --- Colcheias Gêmeas: duas notas de mãos dadas (o "colchete"); se uma cai, a outra vira bandeirola e parte pra cima
 function twins(o){
   const pal=pick([[PP.lime,PP.yellow],[PP.cyan,PP.violet],[PP.orange,PP.lemon],[PP.sky,PP.lime]]),amp=o.amp!=null?o.amp:rand(40,80),spd=150+S.loop*15;
-  const mk=(side,p)=>mkEnemy('twin',{x0:(o.x0!=null?o.x0:W+90)+side*26,y0:o.y0,amp,spd,side,r:22,hp:3,score:150,pal:p,bo:side>0?.5:0,state:'dance',delay:o.delay||0});
+  const mk=(side,p)=>mkEnemy('twin',{x0:(o.x0!=null?o.x0:W+90)+side*26*ESC,y0:o.y0,amp,spd,side,r:22*ESC,hp:3,score:150,pal:p,bo:side>0?.5:0,state:'dance',delay:o.delay||0});
   const a=mk(-1,pal[0]),b=mk(1,pal[1]);a.mate=b;b.mate=a;
 }
 UPD.twin=(e,dt)=>{
@@ -422,10 +422,10 @@ UPD.twin=(e,dt)=>{
 };
 DRAW.twin=e=>{
   const sx=17,sy=-46,mad=e.state==='mad';
-  X.save();X.translate(e.x+e.kx,e.y);
+  X.save();X.translate(e.x+e.kx,e.y);X.scale(ESC,ESC);
   const m=e.mate;
   if(m&&!m.dead&&!mad&&m.delay<=0){
-    const cx=((m.x+m.kx)-(e.x+e.kx))/2+sx,cy=(m.y-e.y)/2+sy+4;
+    const cx=((m.x+m.kx)-(e.x+e.kx))/2/ESC+sx,cy=(m.y-e.y)/2/ESC+sy+4;
     hose(sx,sy+8,cx-e.side*5,cy,-10*e.side,6);
     glove(cx-e.side*5,cy,e.side<0?0:Math.PI,.5,.25,e.side>0);
   }else{
@@ -441,7 +441,7 @@ DRAW.twin=e=>{
 };
 
 // --- Tic-Tac, o metrônomo voador: o pêndulo marca o tempo; congela no 3º tempo e atira no 1º
-function metro(o){return mkEnemy('metro',{r:32,hp:10,score:250,state:'enter',hx:o.hx,hy:o.hy,delay:o.delay||0,pa:0,antic:false,shots:0,lb:Math.floor(BT),
+function metro(o){return mkEnemy('metro',{r:32*ESC,hp:10,score:250,state:'enter',hx:o.hx,hy:o.hy,delay:o.delay||0,pa:0,antic:false,shots:0,lb:Math.floor(BT),
   pal:pick([PP.wood,PP.violet,PP.cyan,PP.lime]),x:W+90,y:o.hy});}
 UPD.metro=(e,dt)=>{
   const bt=Math.floor(BT);
@@ -456,7 +456,7 @@ UPD.metro=(e,dt)=>{
       if(e.shots>=3){if(b4===1){e.state='leave';e.t=0;e.lx=e.x;e.ly=e.y;}}
       else if(b4===2){e.antic=true;e.sqv+=4;}
       else if(b4===0&&e.antic){
-        e.antic=false;e.shots++;const mx=e.x-30,my=e.y-6,base=Math.atan2(pl.y-my,pl.x-mx);
+        e.antic=false;e.shots++;const mx=e.x-30*ESC,my=e.y-6*ESC,base=Math.atan2(pl.y-my,pl.x-mx);
         for(let k=-1;k<=1;k++)fireAt(mx,my,base+k*.2,270+S.loop*30,k===0&&e.shots%2===1,'drop');
         e.kx+=12;e.sqv-=9;A.eshot();sparks(mx,my,C.orange,4,200);
       }
@@ -467,7 +467,7 @@ UPD.metro=(e,dt)=>{
 };
 DRAW.metro=e=>{
   const fl=Math.sin(S.t*16+e.seed)*.5+.5,P=e.pal,bob=e.bob;
-  X.save();X.translate(e.x+e.kx,e.y);X.rotate(e.rot);X.scale(1+e.sq,1-e.sq);
+  X.save();X.translate(e.x+e.kx,e.y);X.scale(ESC,ESC);X.rotate(e.rot);X.scale(1+e.sq,1-e.sq);
   for(const s of [-1,1]){const w=new Path2D();w.moveTo(s*8,-28);w.lineTo(s*(30+8*fl),-50-10*fl);w.lineTo(s*22,-20);w.closePath();piece(w,PAPER,'#e3cfa8',-34,3);}
   X.save();X.translate(0,24);X.rotate(e.pa*.8);
   X.beginPath();X.moveTo(0,0);X.lineTo(0,34);X.lineWidth=5;X.strokeStyle=SHD?SHC:INK;X.stroke();
@@ -481,7 +481,7 @@ DRAW.metro=e=>{
   const kn=new Path2D();kn.arc(0,-42,5.5,0,TAU);piece(kn,PP.yellow[0],PP.yellow[1],2,3);
   pieEyes(0,-21,8,6,8.5,e,{brow:e.antic?1.3:.2});
   grin(0,-8,9,e.antic?4:1+bob*2);
-  const pa=Math.atan2(pl.y-(e.y+lh[1]),pl.x-(e.x+lh[0]));
+  const pa=Math.atan2(pl.y-(e.y+lh[1]*ESC),pl.x-(e.x+lh[0]*ESC));
   glove(lh[0],lh[1],e.antic?pa:Math.PI*.85,.6,e.antic?0:.4+.6*bob,true);
   glove(rh[0],rh[1],.15,.6,.4+.6*bob,false);
   X.restore();
@@ -490,7 +490,7 @@ DRAW.metro=e=>{
 // --- Fom-Fom, o trompete valentão: chega num arco, inspira (bochechas!) e sopra notas azedas
 function horn(o){
   const y0=o.top?-60:H+60;
-  return mkEnemy('horn',{r:30,hp:8,score:250,state:'enter',x:W+80,y:y0,y0,hx:o.hx,hy:o.hy,delay:o.delay||0,inh:0,blow:0,blows:0,wait:.3,
+  return mkEnemy('horn',{r:30*ESC,hp:8,score:250,state:'enter',x:W+80,y:y0,y0,hx:o.hx,hy:o.hy,delay:o.delay||0,inh:0,blow:0,blows:0,wait:.3,
     pal:Math.random()<.5?PP.gold:PP.silver});
 }
 UPD.horn=(e,dt)=>{
@@ -504,7 +504,7 @@ UPD.horn=(e,dt)=>{
   }else if(e.state==='antic'){
     e.inh=E.inOutSine(Math.min(1,e.t/.8));e.x=e.hx+e.inh*14;e.y=e.hy-e.bob*4;
     if(e.t>=.8){
-      const mx=e.x-48,my=e.y+2,base=Math.atan2(pl.y-my,pl.x-mx),pk=(Math.random()*5)|0;
+      const mx=e.x-48*ESC,my=e.y+2*ESC,base=Math.atan2(pl.y-my,pl.x-mx),pk=(Math.random()*5)|0;
       for(let k=0;k<5;k++)fireAt(mx,my,base+(k-2)*.2,250+S.loop*25,k===pk,'note');
       e.blows++;e.blow=1;e.inh=0;e.kx+=26;e.sqv-=12;e.state='idle';e.t=0;e.wait=1;A.honk();ring(mx,my,C.yellow,8,60,.3);
     }
@@ -516,7 +516,7 @@ UPD.horn=(e,dt)=>{
 DRAW.horn=e=>{
   const P=e.pal,inh=e.inh,bl=e.blow,bs=1+inh*.25+bl*.2;
   const ph=[0,1,2].map(i=>Math.max(0,Math.sin(BT*Math.PI*2+i*2.1))*5);
-  X.save();X.translate(e.x+e.kx,e.y);X.rotate(e.rot);X.scale((1+e.sq)*(1-inh*.08),(1-e.sq)*(1+inh*.12));
+  X.save();X.translate(e.x+e.kx,e.y);X.scale(ESC,ESC);X.rotate(e.rot);X.scale((1+e.sq)*(1-inh*.08),(1-e.sq)*(1+inh*.12));
   X.lineCap='round';X.beginPath();X.ellipse(14,4,24,15,0,0,TAU);X.lineWidth=13;X.strokeStyle=SHD?SHC:INK;X.stroke();
   if(!SHD){X.lineWidth=6.5;X.strokeStyle=FLASH?'#fff':P[0];X.stroke();}
   const mp=new Path2D();mp.moveTo(36,-3);mp.lineTo(48,-8);mp.lineTo(48,5);mp.lineTo(36,3);mp.closePath();piece(mp,P[0],P[1],0,3);
@@ -548,7 +548,7 @@ function spawnBoss(){
   const craters=[{x:-44,y:-52,r:11},{x:52,y:-50,r:9},{x:62,y:40,r:12},{x:-66,y:22,r:8}];
   const cracks=new Path2D();
   for(const a0 of [-2.4,-.5,1.9]){let x=Math.cos(a0)*R,y=Math.sin(a0)*R;cracks.moveTo(x,y);for(let k=0;k<4;k++){x*=.8;y*=.8;x+=rand(-9,9);y+=rand(-9,9);cracks.lineTo(x,y);}}
-  S.boss=mkEnemy('boss',{x:W+260,y:H/2,r:R,hp:240+S.loop*60,score:5000,state:'enter',cx:W*.74,phase:1,react:0,cd:1,at:null,ai:0,mouth:0,puff:0,spin:0,
+  S.boss=mkEnemy('boss',{x:W+260,y:H/2,r:R*BSC,dr:R,hp:240+S.loop*60,score:5000,state:'enter',cx:W*.74,phase:1,react:0,cd:1,at:null,ai:0,mouth:0,puff:0,spin:0,
     circ,patches,craters,cracks,dying:0,boomT:0,ft:0,hands:[mkHand(-1),mkHand(1)]});
   A.alarm();
 }
@@ -559,7 +559,7 @@ function startAtk(e){
   e.at={k,t:0};
 }
 function runAtk(e,dt){
-  const a=e.at,hs=e.hands,R=e.r,mx=e.x-16,my=e.y+30;a.t+=dt;
+  const a=e.at,hs=e.hands,R=e.r,mx=e.x-16*BSC,my=e.y+30*BSC;a.t+=dt;
   const done=cd=>{e.at=null;e.cd=cd*(e.phase===3?.75:1);};
   if(a.k==='spit'){
     e.mouth=E.inOutSine(Math.min(1,a.t/.6));e.puff=.07*e.mouth;
@@ -606,7 +606,7 @@ function runAtk(e,dt){
     if(a.t>=.7&&a.t<2.9){
       a.acc=(a.acc||0)+dt;
       while(a.acc>=.09){a.acc-=.09;a.n=(a.n||0)+1;const ang=a.t*2.6;
-        for(let k=0;k<3;k++)fireAt(e.x,e.y,ang+k*TAU/3,185+S.loop*20,a.n%7===0&&k===0,'drop');if(a.n%3===0)A.eshot();}
+        for(let k=0;k<3;k++){const an=ang+k*TAU/3;fireAt(e.x+Math.cos(an)*e.r*.9,e.y+Math.sin(an)*e.r*.9,an,185+S.loop*20,a.n%7===0&&k===0,'drop');}if(a.n%3===0)A.eshot();}
     }
     if(a.t>=3.2)done(1.3);
   }
@@ -632,7 +632,7 @@ UPD.boss=(e,dt)=>{
     e.mouth=.3+.3*Math.sin(e.t*6);
     if(k>=1){e.state='fight';e.ft=0;}
   }else{
-    e.ft+=dt;const w=.42+.08*e.phase;e.x=e.cx+60*Math.sin(2*w*e.ft);e.y=H/2+165*Math.sin(w*e.ft);
+    e.ft+=dt;const w=.42+.08*e.phase;e.x=e.cx+60*Math.sin(2*w*e.ft);e.y=H/2+150*Math.sin(w*e.ft);
     const hpf=Math.max(0,e.hp)/e.maxhp,np=hpf>.66?1:hpf>.33?2:3;
     if(np>e.phase){e.phase=np;e.react=1.2;e.at=null;e.cd=1.4;S.shake=18;e.sqv+=10;A.groan();confetti(e.x,e.y,['#ffe08a','#f5c766',PAPER],14,1);}
     if(e.react>0){e.react-=dt;e.mouth=1;hs.forEach(h=>{h.ty=e.y-80+Math.sin(S.t*40)*6;h.to=1;h.td=-Math.PI/2;});}
@@ -646,10 +646,10 @@ UPD.boss=(e,dt)=>{
   }
 };
 DRAW.boss=e=>{
-  const R=e.r,jit=(e.react>0||e.dying||(e.at&&e.at.k==='spiral'&&e.at.t<.7))?(Math.random()-.5)*6:0;
+  const R=e.dr,K=e.r/e.dr,jit=(e.react>0||e.dying||(e.at&&e.at.k==='spiral'&&e.at.t<.7))?(Math.random()-.5)*6:0;
   const bx=e.x+e.kx+jit,by=e.y+jit*.5;
-  e.hands.forEach((h,i)=>{const s=i?1:-1;hose(bx+s*R*.82,by+20,h.x,h.y,s*30,13);});
-  X.save();X.translate(bx,by);X.rotate(e.rot);const ps=1+e.puff;X.scale(ps*(1+e.sq),ps*(1-e.sq));
+  e.hands.forEach((h,i)=>{const s=i?1:-1;hose(bx+s*e.r*.82,by+20*K,h.x,h.y,s*30,15);});
+  X.save();X.translate(bx,by);X.rotate(e.rot);const ps=(1+e.puff)*K;X.scale(ps*(1+e.sq),ps*(1-e.sq));
   drawGlow(0,0,200,e.phase===3?C.red:C.yellow,.3);
   piece(e.circ,'#ffe08a',null,0,6);
   if(!SHD){
@@ -670,7 +670,7 @@ DRAW.boss=e=>{
     grin(-2,32,40,(ko||yell?1:e.mouth)*26);
   }
   X.restore();
-  e.hands.forEach(h=>glove(h.x,h.y,h.dir,h.s*1.25,h.open,Math.cos(h.dir)<-.01));
+  e.hands.forEach(h=>glove(h.x,h.y,h.dir,h.s*1.45,h.open,Math.cos(h.dir)<-.01));
 };
 
 function spawnWave(){
@@ -1159,7 +1159,7 @@ function strips(){
 }
 // HUD enxuto, à moda antiga: só a carta de HP, as cartas de especial e o acorde em uso
 function hud(){
-  const st=strips(),y0=H-44;X=g;SHD=false;
+  const st=strips(),y0=document.body.classList.contains('touch')?44:H-44;X=g;SHD=false;   // no celular o direcional ocupa o canto de baixo
   const crit=S.lives===1&&Math.floor(S.rt*3)%2===0,hs=1+S.hpPop*.35;
   g.save();g.translate(74,y0);g.rotate(-.05);g.scale(hs,hs);
   piece(st.hp,crit?C.red:PAPER,crit?'#b81d45':'#e8d5ae',8,4);
@@ -1274,7 +1274,7 @@ function render(){
   // cartelas: camada própria, recebe só a compensação óptica (sem aberração cromática)
   g=hudCtx;X=g;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,hudCv.width,hudCv.height);g.setTransform(RS,0,0,RS,0,0);g.lineJoin='round';g.lineCap='round';
   if(S.mode==='title')drawTitle();
-  else{hud();drawBanner();if(S.mode==='over')drawOver();if(S.paused)drawPause();}
+  else{if(S.mode==='play')hud();drawBanner();if(S.mode==='over')drawOver();if(S.paused)drawPause();}
   drawWipe();
   g=sceneCtx;X=g;
   if(post)post.render(scene,hudCv,S.rt,1+S.ca*.5,S.flash);
@@ -1316,12 +1316,12 @@ void main(){
   vec2 hp=vec2(h(vec2(t,31.)),h(vec2(t,37.)));vec2 hd=(uv-hp)*vec2(16./9.,1.);
   if(h(vec2(t,41.))>.86&&abs(hd.y-.04*sin(hd.x*60.))<.0012&&abs(hd.x)<.035)dust=1.;
   col=mix(col,vec3(.07,.04,.03),dust*.8);
-  float gp0=floor(gl_FragCoord.x/1.6);vec2 gp=floor(gl_FragCoord.xy/1.6);
+  vec2 gp=floor(gl_FragCoord.xy/1.6);
   float n=h(gp+t*13.17)-.5,n2=h(floor(gp*.5)+t*7.3)-.5;
   col+=(n*.17+n2*.07)*(1.15-dot(col,vec3(.33)));
   col*=1.+(h(vec2(t,3.))-.5)*.05;
   float sx=h(vec2(t,1.));if(h(vec2(t,9.))>.7&&abs(uv.x-sx)<.0009)col*=.6;
-  float sx2=h(vec2(floor(time*3.),5.));if(abs(uv.x-sx2)<.0006)col=mix(col,vec3(1.,.97,.9),.35);
+  float sx2=h(vec2(floor(time*3.),5.));if(h(vec2(floor(time*3.),6.))>.6&&abs(uv.x-sx2)<.0006)col=mix(col,vec3(1.,.97,.9),.2);
   col=mix(col,col*vec3(1.04,.98,.92),.5)+flash;
   gl_FragColor=vec4(col,1.);
 }`;
